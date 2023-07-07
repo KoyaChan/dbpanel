@@ -1,9 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
-from carsdb import Car
-from carsdb import CarsDB
-from carsdb import ServerNotReadyError
-from carsdb import ValidationError
+from .carsdb import Car
+from .carsdb import CarsDB
+from .carsdb import ServerNotReadyError
+from .carsdb import ValidationError
 
 
 # Todo :
@@ -278,7 +278,7 @@ class CarsPanel:
                 print('submit request failed.')
 
 
-if __name__ == '__main__':
+def main():
     try:
         cars_db = CarsDB()
     except ServerNotReadyError:
@@ -286,3 +286,7 @@ if __name__ == '__main__':
         exit(1)
 
     CarsPanel(cars_db)
+
+
+if __name__ == '__main__':
+    main()

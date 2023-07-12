@@ -6,15 +6,16 @@ from .carsdb import ServerNotReadyError
 from .carsdb import ValidationError
 
 
-# Todo :
-# - When user enters an id in DeleteTab or UpdateTab page then its data is retrieved
+# To do :
+# - Clear panel.__current_car_data after delete_car succeeds
+# - When user enters an id in DeleteTab or UpdateTab page then its data is set to panel.__current_car_data
 # - Prevent id field from changed in tab pages
-# - Show id value to be assigned to new data in AddTab automatically
+# - Show new id value to be assigned in AddTab automatically
 
 
-# Tab page in the panel where is the data is listed.
+# Tab page in the panel where all data fields are listed.
 # When a row is clicked in the list, its data is read into
-# CarsPanel.current_car_data.
+# CarsPanel.__current_car_data.
 class ListTab(tk.Frame):
     def __init__(self, panel):
         self.tab = panel.make_tab('List cars')
@@ -57,7 +58,6 @@ class ListTab(tk.Frame):
 
         # Retrieve all data from the database
         cars = self.panel.db.get_cars_list()
-        cars.sort(key=lambda car: car['id'])
 
         # Adjust the height of the Treeview with the number of rows
         self.car_table.config(height=len(cars))

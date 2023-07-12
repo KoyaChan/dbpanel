@@ -85,7 +85,8 @@ class CarsDB:
         # get cars list from json-server, and return dict type data
         # if failed, return None
         try:
-            reply = requests.get(self.request_url(),
+            target_url = self.request_url() + '/?_sort=id&_order=asc'
+            reply = requests.get(target_url,
                                  headers=CarsDB.h_close)
 
         except requests.RequestException as e:

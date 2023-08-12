@@ -1,5 +1,6 @@
 import requests
 import json
+from abc import ABC, abstractmethod
 
 # http status codes
 # https://requests.readthedocs.io/en/latest/api/#status-code-lookup
@@ -53,7 +54,35 @@ class Car:
             raise ValidationError
 
 
-class CarsDB:
+# Abstract class to define CRUD functions
+class CarDataAccessor(ABC):
+
+    # Get cars list from json-server, and return list of dictionaries.
+    # If failed, return None.
+    @abstractmethod
+    def get_cars_list(self) -> list:
+        pass
+
+    # Add car data to the json db.
+    # Return True if succeeded else False.
+    @abstractmethod
+    def add_new_car(self, car_data: dict) -> bool:
+        pass
+
+    # Delete a car data.
+    # Return True if succeeded else False.
+    @abstractmethod
+    def delete_a_car(self, car_data: dict) -> bool:
+        pass
+
+    # Return a car data retrieved from the given car_data.
+    # Return None if not found.
+    @abstractmethod
+    def select_a_car(self, car_data: dict) -> dict:
+        pass
+
+
+class CarsDB(CarDataAccessor):
     h_close = {'Connection': 'Close'}
     h_content = {'Content-Type': 'application/json'}
 
@@ -82,7 +111,7 @@ class CarsDB:
                 return False
 
     def get_cars_list(self):
-        # get cars list from json-server, and return list of dictionaries
+        # get cars list from json-server, and return list of dictionaries.
         # if failed, return None
         try:
             target_url = self.request_url() + '/?_sort=id&_order=asc'
@@ -145,7 +174,7 @@ class CarsDB:
 
         except requests.RequestException as e:
             print('Get request error: ', e.response)
-            return False
+            return None
 
         else:
             print('Get request status code: ', + reply.status_code)

@@ -82,7 +82,7 @@ class CarsDB:
                 return False
 
     def get_cars_list(self):
-        # get cars list from json-server, and return dict type data
+        # get cars list from json-server, and return list of dictionaries
         # if failed, return None
         try:
             target_url = self.request_url() + '/?_sort=id&_order=asc'
@@ -95,7 +95,7 @@ class CarsDB:
 
         else:
             if reply.status_code == requests.codes.ok:
-                # convert json object to dict and return it
+                # convert json object to list of dict and return it
                 return reply.json()
             elif reply.status_code == requests.codes.not_found:
                 print('Resource not found')

@@ -1,9 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
-from .carsdb import Car
-from .carsdb import CarsDB
-from .carsdb import ServerNotReadyError
-from .carsdb import ValidationError
+if __name__ == '__main__':
+    from carsdb import Car
+    from carsdb import CarsDB
+    from carsdb import ServerNotReadyError
+    from carsdb import ValidationError
+else:
+    from .carsdb import Car
+    from .carsdb import CarsDB
+    from .carsdb import ServerNotReadyError
+    from .carsdb import ValidationError
 
 
 # To do :

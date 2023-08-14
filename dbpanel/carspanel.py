@@ -22,7 +22,7 @@ else:
 # Tab page in the panel where all data fields are listed.
 # When a row is clicked in the list, its data is read into
 # CarsPanel.__current_car_data.
-class ListTab(tk.Frame):
+class ListTab():
     def __init__(self, panel):
         self.tab = panel.make_tab('List cars')
         self.car_table = None

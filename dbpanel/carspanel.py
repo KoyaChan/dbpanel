@@ -15,7 +15,6 @@ else:
 # To do :
 # - Clear panel.__current_car_data after delete_car succeeds
 # - When user enters an id in DeleteTab or UpdateTab page then its data is set to panel.__current_car_data
-# - Prevent id field from changed in tab pages
 # - Show new id value to be assigned in AddTab automatically
 
 

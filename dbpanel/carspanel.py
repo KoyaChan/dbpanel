@@ -15,15 +15,15 @@ else:
 # To do :
 # - Clear panel.__current_car_data after delete_car succeeds
 # - When user enters an id in DeleteTab or UpdateTab page then its data is set to panel.__current_car_data
-# - Prevent id field from changed in tab pages
 # - Show new id value to be assigned in AddTab automatically
 
 
 class MenuBar():
     def __init__(self, panel):
         self.panel = panel
-        self.menu_bar = tk.Menu(panel)
-        panel.config(menu=self.menu_bar)
+        self.parent = panel.root
+        self.menu_bar = tk.Menu(self.parent)
+        self.parent.config(menu=self.menu_bar)
         self.add_sub_menus()
 
     def add_sub_menus(self):
@@ -50,7 +50,7 @@ class MenuBar():
         self.sub_menu_file = self.make_submenu('File', underline=0)
         self.sub_menu_file.add_command(label='Quit',
                                        underline=0,
-                                       command=lambda: self.panel.destroy())
+                                       command=lambda: self.parent.destroy())
 
     def add_option_menu(self):
         self.sub_menu_config = self.make_submenu('Option',
@@ -200,7 +200,7 @@ class CarsPanel:
         self.db = cars_db
         self.root = tk.Tk()
         self.root.title('Cars DB')
-        self.menu_bar = MenuBar(self.root)
+        self.menu_bar = MenuBar(self)
         self.car_attributes = None
         self.notebook = ttk.Notebook(self.root)
         self.__current_car_data = self.make_car_data_fields()

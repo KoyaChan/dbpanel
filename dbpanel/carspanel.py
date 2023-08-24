@@ -2,6 +2,7 @@ import os
 import tkinter as tk
 from tkinter import ttk
 import configparser
+import logging
 if __name__ == '__main__':
     from carsdb import Car
     from carsdb import CarsDB
@@ -82,7 +83,7 @@ class ConfigWindow():
         config_frame.pack()
 
     def switch_db(self):
-        print(self.db_choice.get())
+        self.panel.log_debug('dbchoice: %d', self.db_choice.get())
 
     def save_config(self):
         self.config['DEFAULT'] = {'# DB Choice\n# 1: json\n# 2: csv': None}
@@ -245,7 +246,7 @@ class AddTab:
         # Convert StringVar to string in the input fields
         car_data = self.panel.field_data_to_dict(self.car_data_fields)
         car_data['id'] = self.new_id()
-        print(car_data)
+        self.panel.log_debug('add car data: %s', str(car_data))
 
         # Give the data to the database function to add the data
         self.panel.submit_request(car_data,
@@ -277,9 +278,9 @@ class DeleteTab:
             self.panel.submit_request(car_to_delete,
                                       self.panel.db.delete_a_car)
         else:
-            print("Car to delete isn't found in db")
-            print('car in db: ' + str(car_in_db))
-            print('car to delete: ' + str(car_to_delete))
+            self.panel.logger.error("Car to delete isn't found in db")
+            self.panel.logger.error('car in db: %s', str(car_in_db))
+            self.panel.logger.error('car to delete: %s', str(car_to_delete))
 
 
 # Tab page to change a value in a data.
@@ -305,7 +306,10 @@ class UpdateTab:
 
 
 class CarsPanel:
+    LOG_FORMAT = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
+
     def __init__(self, cars_db):
+        self.logger = self.logging_setup()
         self.db = cars_db
         self.root = tk.Tk()
         self.root.title('Cars DB')
@@ -317,6 +321,35 @@ class CarsPanel:
         self.make_tabs()
         self.notebook.pack()
         self.root.mainloop()
+
+    def logging_setup(self):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+        log_handler = logging.StreamHandler()
+        # log_handler = logging.FileHandler('dbpanel.log', 'a')
+        log_formatter = logging.Formatter(self.LOG_FORMAT)
+        log_handler.setFormatter(log_formatter)
+        log_handler.setLevel(logging.DEBUG)
+        logger.addHandler(log_handler)
+        return logger
+
+    def log_info(self, message, *args):
+        if len(args):
+            self.logger.info(message, args)
+        else:
+            self.logger.info(message)
+
+    def log_debug(self, message, *args):
+        if len(args):
+            self.logger.debug(message, args)
+        else:
+            self.logger.debug(message)
+
+    def log_error(self, message, *args):
+        if len(args):
+            self.logger.error(message, args)
+        else:
+            self.logger.error(message)
 
     def make_tabs(self):
         self.list_tab = ListTab(self)
@@ -387,7 +420,7 @@ class CarsPanel:
         record_id = self.list_tab.car_table.focus()
         # The data values are retrieved from TreeView by its record_id.
         record_values = self.list_tab.car_table.item(record_id, 'values')
-        print(record_values)
+        self.logger.debug('current car data: %s', str(record_values))
         attributes = self.get_car_attributes()
         # Make a dictionary with the attribute and StringVar
         for attr, value in zip(attributes, record_values):
@@ -419,20 +452,20 @@ class CarsPanel:
 
     def submit_request(self, car_data, db_function):
         for attr, value in car_data.items():
-            print(attr + ': ' + value)
+            self.logger.debug('%s : %s', attr, value)
 
         try:
             car = Car(car_data)
 
         except ValidationError:
-            print('Invalid value')
+            self.logger.error('Invalid value')
 
         else:
             if db_function(car.__dict__):
                 self.notebook.select(self.list_tab.tab)
                 self.list_tab.list_cars()
             else:
-                print('submit request failed.')
+                self.logger.error('submit request failed.')
 
 
 def main():

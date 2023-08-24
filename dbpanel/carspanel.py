@@ -1,5 +1,7 @@
+import os
 import tkinter as tk
 from tkinter import ttk
+import configparser
 if __name__ == '__main__':
     from carsdb import Car
     from carsdb import CarsDB
@@ -16,6 +18,90 @@ else:
 # - Clear panel.__current_car_data after delete_car succeeds
 # - When user enters an id in DeleteTab or UpdateTab page then its data is set to panel.__current_car_data
 # - Show new id value to be assigned in AddTab automatically
+
+
+# Config window to configure some settings
+class ConfigWindow():
+    CONFIG_FILE = './dbpanel.ini'
+    DB_CHOICE = {
+        'json': 1,
+        'csv': 2,
+    }
+
+    def __init__(self, panel):
+        self.panel = panel
+        self.parent = panel.root
+        self.db_choice = tk.IntVar(self.panel.root)
+        self.config = configparser.ConfigParser(
+            delimiters='=',
+            allow_no_value=True     # to write comments
+        )
+        self.read_config()
+
+    def create_modal_dialog(self):
+        modal_dlg = tk.Toplevel(self.parent)
+        modal_dlg.grab_set()
+        modal_dlg.focus_set()
+        modal_dlg.geometry('200x200')
+        # Don't show in the task bar
+        modal_dlg.transient(self.parent)
+        self.modal_dlg = modal_dlg
+
+        config_frame = tk.Frame(modal_dlg)
+
+        choices = self.DB_CHOICE
+
+        num = 1
+        for choice, value in choices.items():
+            button = tk.Radiobutton(config_frame,
+                                    text=choice,
+                                    value=value,
+                                    variable=self.db_choice,
+                                    command=self.switch_db,
+                                    )
+            button.grid(row=1, column=num)
+            num += 1
+
+        db_choice_label = tk.Label(config_frame,
+                                   text='DB Choice')
+        db_choice_label.grid(row=0,
+                             column=0,
+                             columnspan=num,
+                             )
+
+        save_button = tk.Button(config_frame,
+                                text='Save',
+                                command=self.save_config)
+        save_button.grid(row=3,
+                         column=0,
+                         columnspan=num,
+                         )
+
+        self.save_button = save_button
+
+        config_frame.pack()
+
+    def switch_db(self):
+        print(self.db_choice.get())
+
+    def save_config(self):
+        self.config['DEFAULT'] = {'# DB Choice\n# 1: json\n# 2: csv': None}
+        self.config['DEFAULT']['db'] = '1'
+
+        if not self.config.has_section('DB Choice'):
+            self.config.add_section('DB Choice')
+
+        self.config['DB Choice']['db'] = str(self.db_choice.get())
+        with open(self.CONFIG_FILE, 'w') as configfile:
+            self.config.write(configfile)
+
+        self.modal_dlg.destroy()
+
+    def read_config(self):
+        if os.path.exists(self.CONFIG_FILE):
+            self.config.read(self.CONFIG_FILE)
+
+            self.db_choice.set(int(self.config['DB Choice']['db']))
 
 
 class MenuBar():
@@ -55,6 +141,9 @@ class MenuBar():
     def add_option_menu(self):
         self.sub_menu_config = self.make_submenu('Option',
                                                  underline=0)
+        self.sub_menu_config.add_command(label='Config',
+                                         command=self.panel.config_window.create_modal_dialog,
+                                         underline=0)
 
 
 # Tab page in the panel where all data fields are listed.
@@ -220,6 +309,7 @@ class CarsPanel:
         self.db = cars_db
         self.root = tk.Tk()
         self.root.title('Cars DB')
+        self.config_window = ConfigWindow(self)
         self.menu_bar = MenuBar(self)
         self.car_attributes = None
         self.notebook = ttk.Notebook(self.root)

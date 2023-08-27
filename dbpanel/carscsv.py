@@ -119,14 +119,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    cars_csv = CarsCSV()
-    cars_list = cars_csv.get_cars_list()
-    print(cars_csv.get_cars_list())
-    print(len(cars_list))
-    print('------')
-    car_data = cars_list[3]
-    result = cars_csv.delete_a_car(car_data)
-    print(f'RESULT: {result}')
-    cars_list = cars_csv.get_cars_list()
-    print(cars_list)
-    print(len(cars_list))

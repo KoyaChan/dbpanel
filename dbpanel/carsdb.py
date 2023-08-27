@@ -1,5 +1,6 @@
 import requests
 import json
+import logging
 from abc import ABC, abstractmethod
 
 # http status codes
@@ -83,13 +84,44 @@ class CarDataAccessor(ABC):
 
 
 class CarsDB(CarDataAccessor):
+    LOG_FORMAT = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
     h_close = {'Connection': 'Close'}
     h_content = {'Content-Type': 'application/json'}
 
     def __init__(self, url='http://localhost', port=3000):
+        self.logger = self.logging_setup()
         self.server_url = url + ':' + str(port)
         if not self.check_server():
             raise ServerNotReadyError()
+
+    def logging_setup(self):
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+        handler = logging.StreamHandler()
+        # handler = logging.FileHandler('dbpanel.log', 'a')
+        formatter = logging.Formatter(self.LOG_FORMAT)
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
+
+    def log_info(self, message, *args):
+        if len(args):
+            self.logger.info(message, args)
+        else:
+            self.logger.info(message)
+
+    def log_debug(self, message, *args):
+        if len(args):
+            self.logger.debug(message, args)
+        else:
+            self.logger.debug(message)
+
+    def log_error(self, message, *args):
+        if len(args):
+            self.log_error(message, args)
+        else:
+            self.log_error(message)
 
     def request_url(self):
         return self.server_url + '/cars'
@@ -100,14 +132,14 @@ class CarsDB(CarDataAccessor):
             reply = requests.head(self.server_url, headers=CarsDB.h_close)
 
         except requests.RequestException as e:
-            print('Communication error: ', e.response)
+            self.log_error('Communication error: %s', e.response)
             return False
 
         else:
             if reply.status_code == requests.codes.ok:
                 return True
             else:
-                print('Server error: ', reply.status_code)
+                self.log_error('Server error: %s', reply.status_code)
                 return False
 
     def get_cars_list(self):
@@ -119,7 +151,7 @@ class CarsDB(CarDataAccessor):
                                  headers=CarsDB.h_close)
 
         except requests.RequestException as e:
-            print('Get request error: ', e.response)
+            self.log_error('Get request error: %s', e.response)
             return None
 
         else:
@@ -127,10 +159,10 @@ class CarsDB(CarDataAccessor):
                 # convert json object to list of dict and return it
                 return reply.json()
             elif reply.status_code == requests.codes.not_found:
-                print('Resource not found')
+                self.log_error('Resource not found')
                 return None
             else:
-                print('Get request error, status code: ', reply.status_code)
+                self.log_error('Get request error, status code: %d', reply.status_code)
                 return None
 
     def add_new_car(self, car_data: dict) -> bool:
@@ -143,28 +175,28 @@ class CarsDB(CarDataAccessor):
                                   data=json.dumps(car_data))
 
         except requests.RequestException as e:
-            print('Post request error: ', e.response)
+            self.log_error('Post request error: %s', e.response)
             return False
 
         else:
             if reply.status_code == requests.codes.created:
                 return True
             else:
-                print('Post request status code: ', reply.status_code)
+                self.log_error('Post request status code: %d', reply.status_code)
                 return False
 
     def delete_a_car(self, car_data: dict) -> bool:
         target_url = self.request_url() + '/' + str(car_data['id'])
-        print('target_url: ', target_url)
+        self.logger.info('target_url: %s', target_url)
         try:
             reply = requests.delete(target_url)
 
         except requests.RequestException as e:
-            print('Delete request error: ', e.response)
+            self.log_error('Delete request error: %s', e.response)
             return False
 
         else:
-            print('Delete request status code: ', reply.status_code)
+            self.logger.info('Delete request status code: %d', reply.status_code)
             return True
 
     def select_a_car(self, car_data: dict) -> dict:
@@ -173,11 +205,11 @@ class CarsDB(CarDataAccessor):
             reply = requests.get(target_url)
 
         except requests.RequestException as e:
-            print('Get request error: ', e.response)
+            self.log_error('Get request error: %s', e.response)
             return None
 
         else:
-            print('Get request status code: ', + reply.status_code)
+            self.logger.info('Get request status code: %d', reply.status_code)
             return reply.json()[0]  # reply.json() is a list
 
     def update_a_car(self, car_data: dict) -> bool:
@@ -188,14 +220,14 @@ class CarsDB(CarDataAccessor):
                                  data=json.dumps(car_data))
 
         except requests.RequestException as e:
-            print('Put request error: ', e.response)
+            self.log_error('Put request error: %s', e.response)
             return False
 
         else:
             if reply.status_code == requests.codes.ok:
                 return True
             else:
-                print('Put request status code: ', reply.status_code)
+                self.logger.info('Put request status code: %d', reply.status_code)
 
 
 if __name__ == '__main__':

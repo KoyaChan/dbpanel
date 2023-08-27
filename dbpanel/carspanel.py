@@ -96,8 +96,6 @@ class ConfigWindow():
 
     def save_config(self):
         self.config.read_dict(self.DEFAULT)
-        # self.config['DEFAULT'] = {'# DB Choice\n# 1: json\n# 2: csv': None}
-        # self.config['DEFAULT']['db'] = '1'
 
         if not self.config.has_section('DB Choice'):
             self.config.add_section('DB Choice')

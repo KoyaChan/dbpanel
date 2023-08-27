@@ -24,6 +24,15 @@ else:
 # Config window to configure some settings
 class ConfigWindow():
     CONFIG_FILE = './dbpanel.ini'
+    DEFAULT = {
+        'default': {
+            # comment
+            '# DB Choice': None,
+            '#  1: json': None,
+            '#  2: csv': None,
+            'db': '1',
+        }
+    }
     DB_CHOICE = {
         'json': 1,
         'csv': 2,
@@ -86,8 +95,9 @@ class ConfigWindow():
         self.panel.log_debug('dbchoice: %d', self.db_choice.get())
 
     def save_config(self):
-        self.config['DEFAULT'] = {'# DB Choice\n# 1: json\n# 2: csv': None}
-        self.config['DEFAULT']['db'] = '1'
+        self.config.read_dict(self.DEFAULT)
+        # self.config['DEFAULT'] = {'# DB Choice\n# 1: json\n# 2: csv': None}
+        # self.config['DEFAULT']['db'] = '1'
 
         if not self.config.has_section('DB Choice'):
             self.config.add_section('DB Choice')

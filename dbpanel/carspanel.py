@@ -160,11 +160,6 @@ class UpdateTab:
 
 
 class CarsPanel:
-    DB_CHOICES = {
-        'JSON SERVER': CarsDB,   # 0
-        'CSV': CarsCSV,          # 1
-    }
-
     def __init__(self, cars_db):
         self.db = cars_db
         self.root = tk.Tk()
@@ -177,7 +172,6 @@ class CarsPanel:
         self.notebook.pack()
 
         self.selector_frame = tk.Frame(self.root)
-        self.make_db_selector()
         self.selector_frame.pack()
 
         self.root.mainloop()
@@ -199,27 +193,6 @@ class CarsPanel:
         tab = tk.Frame(self.notebook)
         self.notebook.add(tab, text=tab_name)
         return tab
-
-    # Radio buttons to select types of database.
-    def make_db_selector(self):
-        # Default is 'JSON SERVER'
-        self.db_chosen = tk.IntVar()
-
-        choice_buttons = []
-        choice_value = 0
-        for choice_text in self.DB_CHOICES:
-            choice = tk.Radiobutton(self.selector_frame,
-                                    text=choice_text,
-                                    variable=self.db_chosen,
-                                    value=choice_value,
-                                    command=lambda: print(self.db_choice())
-                                    )
-            choice_value += 1
-            choice_buttons.append(choice)
-            choice.pack(side='left')
-
-    def db_choice(self):
-        return self.db_chosen.get()
 
     def make_car_data_fields(self):
         # car_data_fields is a dictionary with pairs of car attribute

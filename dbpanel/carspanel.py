@@ -377,19 +377,19 @@ class CarsPanel:
 
     def log_info(self, message, *args):
         if len(args):
-            self.logger.info(message, args)
+            self.logger.info(message, *args)
         else:
             self.logger.info(message)
 
     def log_debug(self, message, *args):
         if len(args):
-            self.logger.debug(message, args)
+            self.logger.debug(message, *args)
         else:
             self.logger.debug(message)
 
     def log_error(self, message, *args):
         if len(args):
-            self.logger.error(message, args)
+            self.logger.error(message, *args)
         else:
             self.logger.error(message)
 

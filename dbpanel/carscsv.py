@@ -1,6 +1,7 @@
 import csv
 # if __name__ == '__main__':
 from carsdb import CarsDB
+from carsdb import Car
 from carsdb import CarDataAccessor
 from carsdb import ServerNotReadyError
 # else:
@@ -85,17 +86,30 @@ class CarsCSV(CarDataAccessor):
     def delete_a_car(self, car_data: dict) -> bool:
         cars_list = self.get_cars_list()
 
-        if car_data not in cars_list:
+        # find the car with the same id as car_data in the list
+        car_found = next((car for car in cars_list if str(car_data['id'])
+                          == str(car['id'])),
+                         None)
+
+        if car_found is None:
             print(f'{car_data} is not found')
             return False
 
-        cars_list.remove(car_data)
+        cars_list.remove(car_found)
         return self.create(cars_list)
 
-    # Retrieve a car data with the specified id from the csv file.
-    # Return the dict type data of the car.
+    # Retrieve a car data with the specified car data from the csv file.
+    # Return None if not found else the dict type data of the car.
     def select_a_car(self, car_data: dict) -> dict:
-        pass
+        cars_list = self.get_cars_list()
+
+        # return the car which matches the specified car_data by its id
+        car_found = next(
+            (car for car in cars_list if car['id'] == car_data['id']),
+            None
+            )
+
+        return None if car_found is None else Car(car_found).__dict__
 
     # Update a car data in the csv file.
     # Return True if suceeded, else False.

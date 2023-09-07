@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 import configparser
 import logging
 if __name__ == '__main__':
@@ -95,6 +96,19 @@ class ConfigWindow():
 
     def switch_db(self):
         self.panel.log_debug('dbchoice: %d', self.db_choice.get())
+        want_restart = messagebox.askyesno('Need restart panel',
+                                           'Need to restart to switch db.\n'
+                                           'Stop now ?',
+                                           # show message over the dialog
+                                           parent=self.modal_dlg,
+                                           )
+        self.parent.lower()
+
+        if want_restart:
+            self.save_config()
+            self.parent.destroy()
+        else:
+            return
 
     def save_config(self):
         self.config.read_dict(self.DEFAULT)
@@ -111,8 +125,14 @@ class ConfigWindow():
     def read_config(self):
         if os.path.exists(self.CONFIG_FILE):
             self.config.read(self.CONFIG_FILE)
-
             self.db_choice.set(int(self.config['DB Choice']['db']))
+        else:
+            self.db_choice.set(self.DB_CHOICE['json'])      # default is json
+
+    # Convert the digit value in self.db_choice to the db name in DB_CHOICE.
+    def chosen_db_name(self):
+        return next(name for name, choice in self.DB_CHOICE.items()
+                    if choice == self.db_choice.get())
 
 
 class MenuBar():
@@ -317,13 +337,17 @@ class UpdateTab:
 
 class CarsPanel:
     LOG_FORMAT = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
+    DB_CLASSES = {
+        'json': CarsDB,
+        'csv': CarsCSV,
+    }
 
-    def __init__(self, cars_db):
-        self.logger = self.logging_setup()
-        self.db = cars_db
+    def __init__(self):
         self.root = tk.Tk()
-        self.root.title('Cars DB')
+        self.logger = self.logging_setup()
         self.config_window = ConfigWindow(self)
+        self.choose_db()
+        self.root.title('Cars DB : ' + self.db_name)
         self.menu_bar = MenuBar(self)
         self.car_attributes = None
 
@@ -332,10 +356,13 @@ class CarsPanel:
         self.make_tabs()
         self.notebook.pack()
 
-        self.selector_frame = tk.Frame(self.root)
-        self.selector_frame.pack()
-
         self.root.mainloop()
+
+    # Return db object based on the choice in the config window
+    # Default is json db
+    def choose_db(self):
+        self.db_name = self.config_window.chosen_db_name()
+        self.db = self.DB_CLASSES[self.db_name]()
 
     def logging_setup(self):
         logger = logging.getLogger(__name__)
@@ -484,13 +511,8 @@ class CarsPanel:
 
 
 def main():
-    try:
-        cars_db = CarsDB()
-    except ServerNotReadyError:
-        print('Server is not ready')
-        exit(1)
+    CarsPanel()
 
-    CarsPanel(cars_db)
 
 if __name__ == '__main__':
     main()

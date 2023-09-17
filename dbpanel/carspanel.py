@@ -5,16 +5,24 @@ from tkinter import messagebox
 import configparser
 import logging
 if __name__ == '__main__':
+    from listtab import ListTab
+    from addtab import AddTab
+    from updatetab import UpdateTab
+    from deletetab import DeleteTab
     from carsdb import Car
     from carsdb import CarsDB
-    from carsdb import ServerNotReadyError
     from carsdb import ValidationError
+    from carsdb import ServerNotReadyError
     from carscsv import CarsCSV
 else:
+    from .listtab import ListTab
+    from .addtab import AddTab
+    from .updatetab import UpdateTab
+    from .deletetab import DeleteTab
     from .carsdb import Car
     from .carsdb import CarsDB
-    from .carsdb import ServerNotReadyError
     from .carsdb import ValidationError
+    from .carsdb import ServerNotReadyError
     from .carscsv import CarsCSV
 
 
@@ -177,164 +185,6 @@ class MenuBar():
                                          underline=0)
 
 
-# Tab page in the panel where all data fields are listed.
-# When a row is clicked in the list, its data is read into
-# CarsPanel.__current_car_data.
-class ListTab():
-    def __init__(self, panel):
-        self.tab = panel.make_tab('List cars')
-        self.car_table = None
-        self.panel = panel
-        self.list_frame = tk.Frame(self.tab)
-        self.list_frame.pack()
-        self.list_cars()
-
-    # Show the treeview table on list_frame.
-    # The table is filled with the data retrieved from database.
-    def list_cars(self):
-        # Make the header of table with the keys of dictionary data.
-        columns = self.panel.get_car_attributes()
-        if self.car_table is None:
-            # reference :
-            # https://office54.net/python/tkinter/ttk-treeview-table
-            #
-            # Show headings of the table.
-            self.car_table = ttk.Treeview(self.list_frame,
-                                          columns=columns,
-                                          show='headings'
-                                          )
-            for column in columns:
-                if column == 'id':
-                    self.car_table.heading(column, text=column,
-                                           anchor=tk.CENTER)
-                    self.car_table.column(column, anchor=tk.CENTER, width=50)
-                else:
-                    self.car_table.heading(column, text=column, anchor=tk.W)
-                    self.car_table.column(column, anchor=tk.W, width=150)
-
-            # selected row data is read into CarsPanel.current_car_data .
-            self.car_table.bind('<<TreeviewSelect>>',
-                                self.panel.fill_current_car_data)
-            self.car_table.pack()
-        else:
-            # Clean up the old data in the table
-            self.car_table.delete(*self.car_table.get_children())
-
-        # Retrieve all data from the database
-        cars = self.panel.db.get_cars_list()
-
-        # Adjust the height of the Treeview with the number of rows
-        self.car_table.config(height=len(cars))
-
-        for car in cars:
-            # insert the data of a row into the bottm of the table
-            self.car_table.insert(parent='',
-                                  index='end',
-                                  values=tuple(car.values())
-                                  )
-
-
-# Tab page where show input fields.
-# Add the data in the fields to the database when the Add button is clicked.
-class AddTab:
-    def __init__(self, panel):
-        self.panel = panel
-        self.tab = panel.make_tab('Add a car')
-        # Make a dictionary with pairs of attribute and StringVar.
-        # It is used to contain the input data.
-        self.car_data_fields = panel.make_car_data_fields()
-
-        # Arrange the input fields in the tab page.
-        panel.make_input_frame(self.tab, self.car_data_fields)
-
-        submit_button = tk.Button(self.tab, text='Add',
-                                  command=lambda: self.add_car()
-                                  )
-        # Place the button at the bottom of the tab page.
-        submit_button.pack(anchor=tk.S)
-
-    # Return new id which is assigned to new data to be added.
-    def new_id(self):
-        # Retrieve all data from the database
-        cars = self.panel.db.get_cars_list()
-
-        # Find the smallest id which isn't assigned to any rows.
-        ids = (car['id'] for car in cars)
-        num = 1
-        for id in ids:
-            # rows are sorted by id
-            if id != num:
-                # This num isn't assigned to a row
-                return str(num)
-            num += 1
-
-        # All ids less than num has been assigned to a row
-        return str(num)
-
-    # Insert the data which is entered in the Add tab to database
-    def add_car(self):
-        # Convert StringVar to string in the input fields
-        car_data = self.panel.field_data_to_dict(self.car_data_fields)
-        car_data['id'] = self.new_id()
-        self.panel.log_debug('add car data: %s', str(car_data))
-
-        # Give the data to the database function to add the data
-        self.panel.submit_request(car_data,
-                                  self.panel.db.add_new_car)
-
-
-# Tab page to delete a data which fills the field in this tab page.
-# Fields are filled with data which is clicked in the list tab page.
-class DeleteTab:
-    def __init__(self, panel):
-        self.tab = panel.make_tab('Delete a car')
-        panel.make_input_frame(self.tab, panel.current_field)
-        self.panel = panel
-        submit_button = tk.Button(self.tab, text='Delete',
-                                  command=self.delete_car
-                                  )
-        submit_button.pack(anchor=tk.S)
-
-    def delete_car(self):
-        # Currently clicked data in the list tab page
-        car_to_delete = self.panel.current_car_data
-
-        # Retrieve the data from db by the id of car to delete.
-        car_in_db = self.panel.db.select_a_car(car_to_delete)
-
-        # Confirm the car data to delete equals the data in db.
-        if (car_in_db == Car(car_to_delete).__dict__):
-            # The car data to delete is found in the db.
-            self.panel.submit_request(car_to_delete,
-                                      self.panel.db.delete_a_car)
-        else:
-            self.panel.logger.error("Car to delete isn't found in db")
-            self.panel.logger.error('car in db: %s', str(car_in_db))
-            self.panel.logger.error('car to delete: %s', str(car_to_delete))
-
-
-# Tab page to change a value in a data.
-# Fields are filled with the selected data in the list tab page at first.
-# User changes values in the fields in this tab page.
-class UpdateTab:
-    def __init__(self, panel):
-        self.tab = panel.make_tab('Update a car')
-        # panel.current_field contains the data selected in the list view
-        panel.make_input_frame(self.tab, panel.current_field)
-        self.panel = panel
-        submit_button = tk.Button(self.tab, text='Update',
-                                  command=self.update_car
-                                  )
-        submit_button.pack(anchor=tk.S)
-
-    def update_car(self):
-        # Currently filled data in the update tab page
-        car_update_data = self.panel.current_car_data
-
-        self.panel.submit_request(car_update_data,
-                                  self.panel.db.update_a_car)
-
-
 class CarsPanel:
     LOG_FORMAT = '%(asctime)s:%(name)s:%(levelname)s:%(message)s'
     DB_CLASSES = {
@@ -362,7 +212,11 @@ class CarsPanel:
     # Default is json db
     def choose_db(self):
         self.db_name = self.config_window.chosen_db_name()
-        self.db = self.DB_CLASSES[self.db_name]()
+        try:
+            self.db = self.DB_CLASSES[self.db_name]()
+        except ServerNotReadyError:
+            self.log_error('Server not ready.')
+            exit(1)
 
     def logging_setup(self):
         logger = logging.getLogger(__name__)

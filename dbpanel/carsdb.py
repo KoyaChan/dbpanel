@@ -119,9 +119,9 @@ class CarsDB(CarDataAccessor):
 
     def log_error(self, message, *args):
         if len(args):
-            self.log_error(message, args)
+            self.logger.error(message, args)
         else:
-            self.log_error(message)
+            self.logger.error(message)
 
     def request_url(self):
         return self.server_url + '/cars'
@@ -231,5 +231,10 @@ class CarsDB(CarDataAccessor):
 
 
 if __name__ == '__main__':
-    cars_db = CarsDB()
+    try:
+        cars_db = CarsDB()
+    except ServerNotReadyError:
+        print('Sever Not Ready')
+        exit(1)
+
     print(cars_db.get_cars_list())

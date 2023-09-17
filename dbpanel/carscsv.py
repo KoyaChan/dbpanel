@@ -1,13 +1,15 @@
 import csv
-# if __name__ == '__main__':
-from carsdb import CarsDB
-from carsdb import Car
-from carsdb import CarDataAccessor
-from carsdb import ServerNotReadyError
-# else:
-#     from .carsdb import CarsDB
-#     from .carsdb import CarDataAccessor
-#     from .carsdb import ServerNotReadyError
+if __name__ == '__main__' or __name__ == 'carscsv':
+    from carsdb import CarsDB
+    from carsdb import Car
+    from carsdb import CarDataAccessor
+    from carsdb import ServerNotReadyError
+else:
+    from .carsdb import CarsDB
+    from .carsdb import Car
+    from .carsdb import CarDataAccessor
+    from .carsdb import ServerNotReadyError
+
 
 
 class CarsCSV(CarDataAccessor):

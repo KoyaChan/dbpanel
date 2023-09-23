@@ -14,10 +14,12 @@ class UpdateTab:
                                   command=self.update_car
                                   )
         submit_button.pack(anchor=tk.S)
+        self.logger = panel.logger
 
     def update_car(self):
         # Currently filled data in the update tab page
         car_update_data = self.panel.current_car_data
 
+        self.logger.debug('new data to update: %s', car_update_data.values())
         self.panel.submit_request(car_update_data,
                                   self.panel.db.update_a_car)

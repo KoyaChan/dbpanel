@@ -19,6 +19,7 @@ class AddTab:
                                   )
         # Place the button at the bottom of the tab page.
         submit_button.pack(anchor=tk.S)
+        self.logger = panel.logger
 
     # Return new id which is assigned to new data to be added.
     def new_id(self):
@@ -32,10 +33,10 @@ class AddTab:
             # rows are sorted by id
             if id != num:
                 # This num isn't assigned to a row
-                return str(num)
+                break
             num += 1
 
-        # All ids less than num has been assigned to a row
+        self.logger.debug('id to be assigned: %d', num)
         return str(num)
 
     # Insert the data which is entered in the Add tab to database
@@ -43,7 +44,7 @@ class AddTab:
         # Convert StringVar to string in the input fields
         car_data = self.panel.field_data_to_dict(self.car_data_fields)
         car_data['id'] = self.new_id()
-        self.panel.log_debug('add car data: %s', str(car_data))
+        self.logger.debug('add car data: %s', car_data)
 
         # Give the data to the database function to add the data
         self.panel.submit_request(car_data,

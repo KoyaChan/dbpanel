@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-import logging
 if __name__ == '__main__':
     from listtab import ListTab
     from addtab import AddTab
@@ -13,6 +12,7 @@ if __name__ == '__main__':
     from carscsv import CarsCSV
     from configwindow import ConfigWindow
     from menubar import MenuBar
+    from logger import Logger
 else:
     from .listtab import ListTab
     from .addtab import AddTab
@@ -25,6 +25,7 @@ else:
     from .carscsv import CarsCSV
     from .configwindow import ConfigWindow
     from .menubar import MenuBar
+    from .logger import Logger
 
 
 # To do :
@@ -42,7 +43,7 @@ class CarsPanel:
 
     def __init__(self):
         self.root = tk.Tk()
-        self.logger = self.logging_setup()
+        self.logger = Logger(__name__).get_logger()
         self.config_window = ConfigWindow(self)
         self.choose_db()
         self.root.title('Cars DB : ' + self.db_name)
@@ -65,35 +66,6 @@ class CarsPanel:
         except ServerNotReadyError:
             self.log_error('Server not ready.')
             exit(1)
-
-    def logging_setup(self):
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.DEBUG)
-        log_handler = logging.StreamHandler()
-        # log_handler = logging.FileHandler('dbpanel.log', 'a')
-        log_formatter = logging.Formatter(self.LOG_FORMAT)
-        log_handler.setFormatter(log_formatter)
-        log_handler.setLevel(logging.DEBUG)
-        logger.addHandler(log_handler)
-        return logger
-
-    def log_info(self, message, *args):
-        if len(args):
-            self.logger.info(message, *args)
-        else:
-            self.logger.info(message)
-
-    def log_debug(self, message, *args):
-        if len(args):
-            self.logger.debug(message, *args)
-        else:
-            self.logger.debug(message)
-
-    def log_error(self, message, *args):
-        if len(args):
-            self.logger.error(message, *args)
-        else:
-            self.logger.error(message)
 
     def make_tabs(self):
         self.list_tab = ListTab(self)

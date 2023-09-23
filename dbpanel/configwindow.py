@@ -30,6 +30,7 @@ class ConfigWindow():
             allow_no_value=True     # to write comments
         )
         self.read_config()
+        self.logger = panel.logger
 
     def create_modal_dialog(self):
         modal_dlg = tk.Toplevel(self.parent)
@@ -75,7 +76,8 @@ class ConfigWindow():
         config_frame.pack()
 
     def switch_db(self):
-        self.panel.log_debug('dbchoice: %d', self.db_choice.get())
+        self.logger.debug('dbchoice: %d', self.db_choice.get())
+        # self.panel.log_debug('dbchoice: %d', self.db_choice.get())
         want_restart = messagebox.askyesno('Need restart panel',
                                            'Need to restart to switch db.\n'
                                            'Stop now ?',

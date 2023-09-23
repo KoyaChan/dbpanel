@@ -1,7 +1,8 @@
 import requests
 import json
-import logging
+# import logging
 from abc import ABC, abstractmethod
+from logger import Logger
 
 # http status codes
 # https://requests.readthedocs.io/en/latest/api/#status-code-lookup
@@ -89,39 +90,11 @@ class CarsDB(CarDataAccessor):
     h_content = {'Content-Type': 'application/json'}
 
     def __init__(self, url='http://localhost', port=3000):
-        self.logger = self.logging_setup()
+        # self.logger = self.logging_setup()
+        self.logger = Logger(__name__).get_logger()
         self.server_url = url + ':' + str(port)
         if not self.check_server():
             raise ServerNotReadyError()
-
-    def logging_setup(self):
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.DEBUG)
-        handler = logging.StreamHandler()
-        # handler = logging.FileHandler('dbpanel.log', 'a')
-        formatter = logging.Formatter(self.LOG_FORMAT)
-        handler.setLevel(logging.DEBUG)
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        return logger
-
-    def log_info(self, message, *args):
-        if len(args):
-            self.logger.info(message, args)
-        else:
-            self.logger.info(message)
-
-    def log_debug(self, message, *args):
-        if len(args):
-            self.logger.debug(message, args)
-        else:
-            self.logger.debug(message)
-
-    def log_error(self, message, *args):
-        if len(args):
-            self.logger.error(message, args)
-        else:
-            self.logger.error(message)
 
     def request_url(self):
         return self.server_url + '/cars'

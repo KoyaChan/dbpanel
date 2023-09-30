@@ -27,7 +27,7 @@ class AddTab:
         cars = self.panel.db.get_cars_list()
 
         # Find the smallest id which isn't assigned to any rows.
-        ids = (car['id'] for car in cars)
+        ids = (int(car['id']) for car in cars)
         num = 1
         for id in ids:
             # rows are sorted by id

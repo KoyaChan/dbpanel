@@ -13,7 +13,6 @@ else:
     from .logger import Logger
 
 
-
 class CarsCSV(CarDataAccessor):
     FILENAME = 'cars.csv'
 
@@ -33,7 +32,7 @@ class CarsCSV(CarDataAccessor):
                                         fieldnames=header,
                                         quoting=csv.QUOTE_MINIMAL)
                 writer.writeheader()
-                for car in cars:
+                for car in sorted(cars, key=lambda car: int(car['id'])):
                     writer.writerow(car)
 
             return True
@@ -75,19 +74,16 @@ class CarsCSV(CarDataAccessor):
     # Add car data to the csv file.
     # Return True if succeeded else False.
     def add_new_car(self, car_data: dict) -> bool:
-        try:
-            with open(self.filename, 'a', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, delimiter=',',
-                                        fieldnames=self.header,
-                                        quoting=csv.QUOTE_MINIMAL)
-                writer.writerow(car_data)
-
-            return True
-
-        except OSError as e:
-            self.logger.error('Add a car to %s failed. error: %s',
-                              self.filename, e.strerror)
+        cars = self.get_cars_list()
+        if cars is None:
             return False
+
+        cars.append(car_data)
+        if not self.create(cars):
+            return False
+
+        self.logger.info('Car id: %s added', str(car_data['id']))
+        return True
 
     # Delete a car data from the csv file.
     # Return True if succeeded, else False.
@@ -100,7 +96,7 @@ class CarsCSV(CarDataAccessor):
                          None)
 
         if car_found is None:
-            self.logger.error('car id: %d not found', car_data['id'])
+            self.logger.error('car id: %s not found', str(car_data['id']))
             return False
 
         cars_list.remove(car_found)
@@ -124,14 +120,14 @@ class CarsCSV(CarDataAccessor):
     def update_a_car(self, car_data: dict) -> bool:
         # delete the car data which has the same id as th specified data
         if not self.delete_a_car(car_data):
-            self.logger.error('car id %d not found', car_data['id'])
+            self.logger.error('car id %s not found', str(car_data['id']))
             return False
 
         if not self.add_new_car(car_data):
-            self.logger.error('failed to add a car, id: %d', car_data['id'])
+            self.logger.error('failed to add a car, id: %s', str(car_data['id']))
             return False
 
-        self.logger.info('update success id: %d', car_data['id'])
+        self.logger.info('update success id: %s', str(car_data['id']))
         return True
 
 

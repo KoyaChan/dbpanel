@@ -4,11 +4,13 @@ if __name__ == '__main__' or __name__ == 'carscsv':
     from carsdb import Car
     from carsdb import CarDataAccessor
     from carsdb import ServerNotReadyError
+    from logger import Logger
 else:
     from .carsdb import CarsDB
     from .carsdb import Car
     from .carsdb import CarDataAccessor
     from .carsdb import ServerNotReadyError
+    from .logger import Logger
 
 
 
@@ -18,6 +20,7 @@ class CarsCSV(CarDataAccessor):
     def __init__(self):
         self.filename = CarsCSV.FILENAME
         self._header = None
+        self.logger = Logger(__name__).get_logger()
 
     # Newly create the csv file with the data given in cars parameter.
     # Return True if succeeded else False.
@@ -36,7 +39,7 @@ class CarsCSV(CarDataAccessor):
             return True
 
         except OSError as e:
-            print('Create csv file failed. error: ', e.strerror)
+            self.logger.error('Create csv file failed. error: %s', e.strerror)
             return False
 
     @property
@@ -52,7 +55,8 @@ class CarsCSV(CarDataAccessor):
                 return self._header
 
         # The csv file doesn't have any rows.
-        print(f'Failed to get header as no rows in {self.filename}.')
+        self.logger.error('Failed to get header as no rows in %s',
+                          self.filename)
         return None
 
     # Get cars list from the csv file, and return list of dictionaries.
@@ -64,7 +68,8 @@ class CarsCSV(CarDataAccessor):
                 return list(reader)
 
         except OSError as e:
-            print(f'Get cars from {self.filename} failed. error: ', e.strerror)
+            self.logger.error('Get cars from %s failed. error: %s',
+                              self.filename, e.strerror)
             return None
 
     # Add car data to the csv file.
@@ -80,7 +85,8 @@ class CarsCSV(CarDataAccessor):
             return True
 
         except OSError as e:
-            print(f'Add a car to {self.filename} failed. error: ', e.strerror)
+            self.logger.error('Add a car to %s failed. error: %s',
+                              self.filename, e.strerror)
             return False
 
     # Delete a car data from the csv file.
@@ -94,7 +100,7 @@ class CarsCSV(CarDataAccessor):
                          None)
 
         if car_found is None:
-            print(f'{car_data} is not found')
+            self.logger.error('car id: %d not found', car_data['id'])
             return False
 
         cars_list.remove(car_found)
@@ -118,16 +124,14 @@ class CarsCSV(CarDataAccessor):
     def update_a_car(self, car_data: dict) -> bool:
         # delete the car data which has the same id as th specified data
         if not self.delete_a_car(car_data):
-            print(f'car id {car_data["id"]} not found')
+            self.logger.error('car id %d not found', car_data['id'])
             return False
 
         if not self.add_new_car(car_data):
-            print(f'failed to add a car, id: {car_data["id"]}')
-            # self.logger.error('failed to add a car, id: %d', car_data['id'])
+            self.logger.error('failed to add a car, id: %d', car_data['id'])
             return False
 
-        print(f'update success id: {car_data["id"]}')
-        # self.logger.info('update success id: %d', car_data['id']')
+        self.logger.info('update success id: %d', car_data['id'])
         return True
 
 
@@ -137,7 +141,7 @@ def main():
         cars_db = CarsDB()
 
     except ServerNotReadyError:
-        print('Server is not ready')
+        Logger(__name__).get_logger().error('Server is not ready')
         exit(1)
 
     else:

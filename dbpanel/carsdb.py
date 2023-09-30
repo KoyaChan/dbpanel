@@ -105,14 +105,14 @@ class CarsDB(CarDataAccessor):
             reply = requests.head(self.server_url, headers=CarsDB.h_close)
 
         except requests.RequestException as e:
-            self.log_error('Communication error: %s', e.response)
+            self.logger.error('Communication error: %s', e.response)
             return False
 
         else:
             if reply.status_code == requests.codes.ok:
                 return True
             else:
-                self.log_error('Server error: %s', reply.status_code)
+                self.logger.error('Server error: %s', reply.status_code)
                 return False
 
     def get_cars_list(self):
@@ -124,7 +124,7 @@ class CarsDB(CarDataAccessor):
                                  headers=CarsDB.h_close)
 
         except requests.RequestException as e:
-            self.log_error('Get request error: %s', e.response)
+            self.logger.error('Get request error: %s', e.response)
             return None
 
         else:
@@ -132,10 +132,10 @@ class CarsDB(CarDataAccessor):
                 # convert json object to list of dict and return it
                 return reply.json()
             elif reply.status_code == requests.codes.not_found:
-                self.log_error('Resource not found')
+                self.logger.error('Resource not found')
                 return None
             else:
-                self.log_error('Get request error, status code: %d', reply.status_code)
+                self.logger.error('Get request error, status code: %d', reply.status_code)
                 return None
 
     def add_new_car(self, car_data: dict) -> bool:
@@ -148,14 +148,14 @@ class CarsDB(CarDataAccessor):
                                   data=json.dumps(car_data))
 
         except requests.RequestException as e:
-            self.log_error('Post request error: %s', e.response)
+            self.logger.error('Post request error: %s', e.response)
             return False
 
         else:
             if reply.status_code == requests.codes.created:
                 return True
             else:
-                self.log_error('Post request status code: %d', reply.status_code)
+                self.logger.error('Post request status code: %d', reply.status_code)
                 return False
 
     def delete_a_car(self, car_data: dict) -> bool:
@@ -165,7 +165,7 @@ class CarsDB(CarDataAccessor):
             reply = requests.delete(target_url)
 
         except requests.RequestException as e:
-            self.log_error('Delete request error: %s', e.response)
+            self.logger.error('Delete request error: %s', e.response)
             return False
 
         else:
@@ -178,7 +178,7 @@ class CarsDB(CarDataAccessor):
             reply = requests.get(target_url)
 
         except requests.RequestException as e:
-            self.log_error('Get request error: %s', e.response)
+            self.logger.error('Get request error: %s', e.response)
             return None
 
         else:
@@ -193,7 +193,7 @@ class CarsDB(CarDataAccessor):
                                  data=json.dumps(car_data))
 
         except requests.RequestException as e:
-            self.log_error('Put request error: %s', e.response)
+            self.logger.error('Put request error: %s', e.response)
             return False
 
         else:

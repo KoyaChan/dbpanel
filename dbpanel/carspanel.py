@@ -64,7 +64,7 @@ class CarsPanel:
         try:
             self.db = self.DB_CLASSES[self.db_name]()
         except ServerNotReadyError:
-            self.log_error('Server not ready.')
+            self.logger.error('Server not ready.')
             exit(1)
 
     def make_tabs(self):

@@ -100,7 +100,7 @@ class CarsCSV(CarDataAccessor):
         cars_list.remove(car_found)
         return self.create(cars_list)
 
-    # Retrieve a car data with the specified car data from the csv file.
+    # Retrieve a car data with the id of specified car data.
     # Return None if not found else the dict type data of the car.
     def select_a_car(self, car_data: dict) -> dict:
         cars_list = self.get_cars_list()
@@ -116,7 +116,19 @@ class CarsCSV(CarDataAccessor):
     # Update a car data in the csv file.
     # Return True if suceeded, else False.
     def update_a_car(self, car_data: dict) -> bool:
-        pass
+        # delete the car data which has the same id as th specified data
+        if not self.delete_a_car(car_data):
+            print(f'car id {car_data["id"]} not found')
+            return False
+
+        if not self.add_new_car(car_data):
+            print(f'failed to add a car, id: {car_data["id"]}')
+            # self.logger.error('failed to add a car, id: %d', car_data['id'])
+            return False
+
+        print(f'update success id: {car_data["id"]}')
+        # self.logger.info('update success id: %d', car_data['id']')
+        return True
 
 
 # Create the csv file with the data got from the cars.json.
